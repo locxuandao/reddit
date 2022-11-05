@@ -4,6 +4,7 @@ import argon2 from 'argon2'
 import { UserMulationResponse } from "../types/UserMulationResponse";
 import { RegisterInput } from "../types/RegisterInput";
 import { validateRegister } from "../utils/validateRegister";
+import { LoginInput } from "../types/loginInput";
 
 
 @Resolver()
@@ -63,4 +64,61 @@ export class UserResolver {
         }
 
     }
+    @Mutation(_return => UserMulationResponse)
+     async login(@Arg('loginInput') {usernameOrEmail,password} : LoginInput): Promise<UserMulationResponse> {
+         try {
+            const existingUser = await User.findOneBy(
+                usernameOrEmail.includes('@') 
+                ? { email: usernameOrEmail} 
+                : {username : usernameOrEmail }
+            )
+          if(!existingUser) 
+            return {
+                code : 400 ,
+                success : false,
+                messeage : 'Người dùng không tồn tại',
+                errors : [
+                    {
+                        field : 'usernameOrEmail',
+                        messeage : 'sai tên người dùng hoặc  email'
+                    }
+                ]
+            }
+          
+            const passwordValid = await argon2.verify(existingUser.password , password)
+            if(!passwordValid)
+            return {
+                code : 400,
+                success : false,
+                messeage : 'sai mật khẩu',
+                errors : [
+                    {
+                        field : 'password',
+                        messeage : 'sai mật khẩu'
+                    }
+                ]
+                
+            }
+            
+            return {
+                code : 200,
+                success : true,
+                messeage : 'Logged in successfully',
+                user : existingUser
+            }
+           
+         }
+         catch(error) {
+            console.log(error)
+            return {
+                code : 500,
+                success :false,
+                messeage :`Eror ${error.messeage}`
+                
+             }
+ 
+         }
+
+         
+     }
 }
