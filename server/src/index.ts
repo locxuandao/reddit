@@ -10,6 +10,9 @@ import { HelloResolver } from './resolvers/hello'
 import { ApolloServer } from 'apollo-server-express'
 import {ApolloServerPluginLandingPageGraphQLPlayground} from 'apollo-server-core'
 import { UserResolver } from './resolvers/user'
+import mongoose from 'mongoose'
+import MongoStore from 'connect-mongo/build/main/lib/MongoStore'
+import session from 'express-session'
 
 const main = async () => {
     await createConnection({
@@ -24,6 +27,10 @@ const main = async () => {
         }) 
 
     const app = express()
+
+    //session/cookie store
+    await mongoose.connect("mongodb+srv://traitimtrongvang:xuanloc123456789@reddit.stshmcd.mongodb.net/reddit?retryWrites=true&w=majority")
+    console.log('mongoDB connected')
     
     const apolloServer = new ApolloServer({
         schema : await buildSchema({resolvers : [HelloResolver , UserResolver] , validate : false}),
